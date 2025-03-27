@@ -12,8 +12,6 @@ st.markdown(
             border: 2px solid white;
             font-size: 18px;
         }
-        
-        /* Hover effect */
         .stButton>button:hover {
             background-color: #0e1117; /* Dark background */
             color: white;
