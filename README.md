@@ -7,9 +7,7 @@ Features :
 3. Career Test Page – An interactive career test to help users find suitable career paths.
 4. Resume Analysis – Users can upload resumes to receive career suggestions.
 
-🛠️ Technologies Used
+Technologies Used :
 Python – Core language for AI-driven suggestions.
-
 Streamlit – For a user-friendly and interactive web app.
-
 Ollama & Hugging Face AI – Enhancing the model’s accuracy for career recommendations.
