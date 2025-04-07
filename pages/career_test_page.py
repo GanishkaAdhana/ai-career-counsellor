@@ -12,6 +12,7 @@ st.markdown(
             border: 2px solid white;
             font-size: 18px;
         }
+        
         .stButton>button:hover {
             background-color: #0e1117; /* Dark background */
             color: white;
@@ -26,7 +27,6 @@ with col2:
         st.switch_page("pages/ai_chat_page.py")
 
 def get_career_suggestion(answers):
-    """Send answers to the AI model and get a career suggestion."""
     prompt = f"""
     Analyze the following responses from a career interest test and suggest the 3 best-suited careers for the user. 
     Answers: {answers}
