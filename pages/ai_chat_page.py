@@ -1,6 +1,7 @@
 import streamlit as st
 import ollama  
 import fitz 
+
 st.set_page_config(page_title="Chat with AI", page_icon="💬", layout="wide")
 
 st.markdown(
@@ -54,7 +55,7 @@ col1, col2 = st.columns([0.8, 0.2])
 with col2:
     if st.button("Take Career Test 📖"):
         st.switch_page("pages/career_test_page.py")
-
+        
 st.title("💬 Chat with Your AI Career Guide")
 st.write("Ask any career-related questions, and our AI will guide you!")
 
@@ -65,10 +66,9 @@ if "resume_text" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "resume_processed" not in st.session_state:
-    st.session_state.resume_processed = False  # Track if AI has already given job suggestions
+    st.session_state.resume_processed = False  
 
 def extract_text_from_resume(uploaded_file):
-    """Extracts text from a PDF resume using PyMuPDF."""
     try:
         with fitz.open(stream=uploaded_file.read(), filetype="pdf") as doc:
             text = "\n".join([page.get_text("text") for page in doc])
@@ -77,7 +77,6 @@ def extract_text_from_resume(uploaded_file):
         return f"⚠️ Error extracting text: {e}"
 
 def suggest_career_from_resume():
-    """Generates job title suggestions and career advice based on the resume."""
     if not st.session_state.resume_text:
         return "⚠️ No resume data available."
 
@@ -109,8 +108,8 @@ if not st.session_state.resume_processed:
         st.success("✅ Resume uploaded successfully! Processing career suggestions...")
         ai_reply = suggest_career_from_resume()
         st.session_state.messages.append({"role": "ai", "content": ai_reply})
-        st.session_state.resume_processed = True  # Mark resume as processed
-        st.rerun()  # Refresh the UI after processing
+        st.session_state.resume_processed = True  
+        st.rerun() 
 
 for message in st.session_state.messages:
     role = "👤" if message["role"] == "user" else "🤖"
