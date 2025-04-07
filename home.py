@@ -11,6 +11,7 @@ st.markdown("""
             transform: translate(-50%, -50%);
             text-align: center;
         }
+
         .stButton>button {
             background-color: white;
             color: black;
@@ -19,11 +20,13 @@ st.markdown("""
             border: 2px solid white;
             font-size: 18px;
         }
+        
         .stButton>button:hover {
             background-color: #0e1117; /* Dark background */
             color: white;
             border: 2px solid white;
         }
+
         .career-test-container {
             display: flex;
             justify-content: flex-end;
