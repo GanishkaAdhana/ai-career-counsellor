@@ -1,4 +1,5 @@
 AI Career Counselor
+
 AI Career Counselor is an intelligent, AI-powered web application designed to assist users in identifying suitable career paths based on their skills, interests, and resume data. Built using Python and Streamlit, the platform combines interactive UI design with state-of-the-art AI technologies to offer personalized guidance, resume analysis, and insightful career-related suggestions. It is particularly useful for students, recent graduates, or professionals seeking a career transition.
 
 Features of AI Career Counsellor 
