@@ -1,148 +1,149 @@
 import streamlit as st
-import ollama  
-import fitz 
+import fitz
+import os
+from rag_help import init_rag_system, simplified_query_with_rag, process_new_document, get_existing_documents, document_exists
 
-st.set_page_config(page_title="Chat with AI", page_icon="💬", layout="wide")
+st.set_page_config(page_title="AI Career Guide", page_icon="🚀", layout="wide")
 
-st.markdown(
-    """
-    <style>
-        .welcome-box {
-            background-color: #5c5d5e;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 20px;
-            color: white;
-        }
-        .user-message {
-            background-color: #2e3036;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            color: white;
-        }
-        .ai-message {
-            background-color: #1b1f2b;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            color: white;
-        }
-        .stButton>button {
-            background-color: white;
-            color: black;
-            font-weight: bold;
-            border-radius: 5px;
-        }
-        .stButton>button:hover {
-            background-color: #0e1117;
-            color: white;
-            border: 2px solid white;
-        }
-        .chat-input {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60%;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-col1, col2 = st.columns([0.8, 0.2])
-with col2:
-    if st.button("Take Career Test 📖"):
-        st.switch_page("pages/career_test_page.py")
-        
-st.title("💬 Chat with Your AI Career Guide")
-st.write("Ask any career-related questions, and our AI will guide you!")
+# Custom CSS for improved UI
+st.markdown("""
+<style>
+    .stApp {
+        max-width: 1200px;
+    }
+    .chat-message {
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .chat-message.user {
+        background-color: #e3f2fd;
+    }
+    .chat-message.bot {
+        background-color: #ffffff;
+    }
+    .chat-message .message-content {
+        margin-top: 0.5rem;
+    }
+    .sidebar .stButton>button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .stTextInput>div>div>input {
+        background-color: #ffffff;
+    }
+    .input-container {
+        position: fixed;
+        bottom: 0;
+        left: 22rem;
+        right: 0;
+        padding: 1rem;
+        background-color: #f5f7f9;
+        z-index: 1000;
+    }
+    .chat-container {
+        margin-bottom: 80px;
+        padding-left: 22rem;
+        padding-right: 2rem;
+    }
+    [data-testid="stSidebar"] {
+        width: 22rem !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-st.markdown('<div class="welcome-box">🤖 Hello! I am CareerBot. I will analyze your resume and suggest the best job titles & skills. Then, feel free to ask any questions!</div>', unsafe_allow_html=True)
-
-if "resume_text" not in st.session_state:
-    st.session_state.resume_text = None  
+# Initialize session states
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "resume_processed" not in st.session_state:
-    st.session_state.resume_processed = False  
+if "current_document" not in st.session_state:
+    st.session_state.current_document = None
+if "rag_system" not in st.session_state:
+    st.session_state.rag_system = None
 
-def extract_text_from_resume(uploaded_file):
+# Function to extract text from uploaded PDF document
+def extract_text_from_pdf(uploaded_file):
     try:
         with fitz.open(stream=uploaded_file.read(), filetype="pdf") as doc:
-            text = "\n".join([page.get_text("text") for page in doc])
-        return text.strip() if text else "No text found in resume."
+            text = "\n".join([page.get_text() for page in doc])
+        return text.strip() if text else "No text found in document."
     except Exception as e:
-        return f"⚠️ Error extracting text: {e}"
+        st.error(f"Error extracting text from document: {e}")
+        return None
 
-def suggest_career_from_resume():
-    if not st.session_state.resume_text:
-        return "⚠️ No resume data available."
+# Function to display chat messages
+def display_chat_messages(messages):
+    for message in messages:
+        with st.container():
+            st.markdown(f"""
+            <div class="chat-message {message['role']}">
+                <div><strong>{'You' if message['role'] == 'user' else 'AI'}:</strong></div>
+                <div class="message-content">{message['content']}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-    system_prompt = f"""
-    You are a highly knowledgeable Career Advisor. Based on the resume details below, provide structured career recommendations.
-    Analyze the following resume and suggest:
-    - **Most suitable job titles from the resume**
-    - **Key skills identified on the basis of resume**
-    - **Advice for improving job opportunities**
-    - **A friendly prompt asking the user for further queries**
-    - **Don't add unnecessary stuff**
-    
-    Resume Content:
-    {st.session_state.resume_text}
-    
-    Keep the response concise and structured
-    """
-    
-    try:
-        response = ollama.chat(model="smollm:360m", messages=[{"role": "user", "content": system_prompt}])
-        return response["message"]["content"]
-    except Exception:
-        return "⚠️ Error: AI model is unavailable. Please check the configuration."
+# Sidebar
+with st.sidebar:
+    st.title("📚 Document Manager")
 
-if not st.session_state.resume_processed:
-    uploaded_resume = st.file_uploader("Upload your resume (PDF) *optional", type=["pdf"])
-    if uploaded_resume:
-        st.session_state.resume_text = extract_text_from_resume(uploaded_resume)
-        st.success("✅ Resume uploaded successfully! Processing career suggestions...")
-        ai_reply = suggest_career_from_resume()
-        st.session_state.messages.append({"role": "ai", "content": ai_reply})
-        st.session_state.resume_processed = True  
-        st.rerun() 
+    uploaded_doc = st.file_uploader("Upload a document (PDF)", type=["pdf"])
 
-for message in st.session_state.messages:
-    role = "👤" if message["role"] == "user" else "🤖"
-    msg_class = "user-message" if message["role"] == "user" else "ai-message"
-    st.markdown(f'<div class="{msg_class}">{role} {message["content"]}</div>', unsafe_allow_html=True)
+    existing_docs = get_existing_documents()
+    selected_doc = st.selectbox("Select existing document", ["None"] + existing_docs)
 
-with st.form(key="chat_form", clear_on_submit=True):
-    query = st.text_input("Ask your career-related question...", key="user_input", help="Type your message here.", placeholder="Type your message here...")
-    submit_button = st.form_submit_button("Send")
+    if uploaded_doc:
+        if not document_exists(uploaded_doc.name):
+            doc_text = extract_text_from_pdf(uploaded_doc)
+            if doc_text:
+                process_new_document(doc_text, uploaded_doc.name)
+                st.success(f"✅ '{uploaded_doc.name}' added!")
 
-if submit_button and query.strip():
-    st.session_state.messages.append({"role": "user", "content": query})
+        st.session_state.current_document = uploaded_doc.name
+        st.session_state.rag_system = init_rag_system(uploaded_doc.name)
+        st.rerun()
 
-    resume_info = f"\n\nUser's Resume Content:\n{st.session_state.resume_text}" if st.session_state.resume_text else ""
-    
-    ai_prompt = f"""
-    You are a highly knowledgeable Career Advisor. Based on the resume details below, provide structured career recommendations.
-    Based on these points mainly, answer the question -
-    - **Most suitable job titles**
-    - **Relevant career options**
-    - **Necessary skills to improve**
-    - **Any additional recommendations**
-    - **Answer the query clearly and concisely**
-    - **Keep it in professional and easy tone**
-    - **Answer according to the question**
-    - **If any question is not career-related, respond like "Please ask me a career related questions. I am best at it!"**
-    """
-    
-    try:
-        response = ollama.chat(model="smollm:360m", messages=[{"role": "user", "content": ai_prompt}])
-        ai_reply = response["message"]["content"]
-    except Exception:
-        ai_reply = "⚠️ Error: AI model is unavailable. Please check the configuration."
+    if selected_doc != "None" and selected_doc != st.session_state.current_document:
+        st.session_state.current_document = selected_doc
+        st.session_state.rag_system = init_rag_system(selected_doc)
+        st.success(f"✅ Selected: {selected_doc}")
+        st.rerun()
 
-    st.session_state.messages.append({"role": "ai", "content": ai_reply})
-    st.rerun()
+    st.markdown("---")
+    st.header("📊 Career Resources")
+    if st.button("Take Career Assessment"):
+        st.switch_page("pages/career_test_page.py")
+    if st.button("View Job Market Trends"):
+        st.info("Job market trends feature coming soon!")
+
+# Main chat interface
+st.title("🚀 AI Career Guide")
+
+if st.session_state.current_document:
+    st.subheader(f"📄 Current Document: {st.session_state.current_document}")
+
+# Display chat messages
+chat_container = st.container()
+with chat_container:
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    display_chat_messages(st.session_state.messages)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# Input container at the bottom
+st.markdown('<div class="input-container">', unsafe_allow_html=True)
+user_input = st.chat_input("Ask about careers, skills, or job opportunities...", key="user_input")
+st.markdown('</div>', unsafe_allow_html=True)
+
+if user_input:
+    if st.session_state.current_document and st.session_state.rag_system:
+        st.session_state.messages.append({"role": "user", "content": user_input})
+
+        with st.spinner("AI is thinking..."):
+            collection, model = st.session_state.rag_system
+            ai_response = simplified_query_with_rag(collection, model, user_input)
+            st.session_state.messages.append({"role": "bot", "content": ai_response})
+
+        st.rerun()
+    elif not st.session_state.current_document:
+        st.warning("Please select or upload a document first.")
