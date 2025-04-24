@@ -22,4 +22,14 @@ How It Works
 3. Response Generation: The system retrieves relevant career insights from a structured domain knowledge base using RAG and FAISS, and generates a contextual response using the phi3:mini model.
 4. Recommendations Delivered: Personalized career suggestions or test results are presented to the user through the Streamlit interface.
 
+
+# Install all required Python packages
+pip install -r requirements.txt
+
+# Pull the phi3:mini model (needed for local inference)
+ollama pull phi3:mini
+
+# Run the AI Career Counselor app
+streamlit run home_page.py
+
 AI Career Counselor combines the power of modern AI with intuitive design to deliver smart, personalized career guidance.
