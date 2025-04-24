@@ -32,7 +32,7 @@ def get_career_suggestion(answers):
     Answers: {answers}
     Provide only the job titles in a bullet-point format.
     """
-    response = ollama.chat(model='smollm:360m', messages=[{"role": "user", "content": prompt}])
+    response = ollama.chat(model='phi3:mini', messages=[{"role": "user", "content": prompt}])
     return response['message']['content']
 
 def career_test_page():
