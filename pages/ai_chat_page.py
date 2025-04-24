@@ -5,7 +5,6 @@ from rag_help import init_rag_system, simplified_query_with_rag, process_new_doc
 
 st.set_page_config(page_title="AI Career Guide", page_icon="🚀", layout="wide")
 
-# Custom CSS for improved UI
 st.markdown("""
 <style>
     .stApp {
