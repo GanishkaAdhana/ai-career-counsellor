@@ -26,7 +26,7 @@ How It Works
 # Install all required Python packages
 pip install -r requirements.txt
 
-# Pull the phi3:mini model (needed for local inference)
+# Pull the gemma:2b model (needed for local inference)
 ollama pull gemma:2b
 
 # Run the AI Career Counselor app
