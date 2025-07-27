@@ -6,25 +6,20 @@ from chromadb.utils import embedding_functions
 from typing import List, Tuple
 import textwrap
 import uuid
-
 from chromadb import PersistentClient
 
-# Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Initialize embedding function
 ef = embedding_functions.OllamaEmbeddingFunction(
     model_name="nomic-embed-text",
     url="http://localhost:11434"
 )
 
-
 def create_chunks(text: str, chunk_size: int = 1000) -> List[str]:
     return textwrap.wrap(text, chunk_size, break_long_words=False)
 
 def create_text_chunks(documents, chunk_size=1000, overlap=200):
-    """Split documents into manageable chunks for processing."""
     all_chunks = []
     for doc in documents:
         content = doc["content"]
@@ -60,7 +55,6 @@ def create_text_chunks(documents, chunk_size=1000, overlap=200):
 
 def add_chunks_to_collection(collection: chromadb.Collection, chunks: List[dict]):
     for chunk in chunks:
-        # Generate a unique ID that includes the original filename
         unique_id = f"{chunk['metadata']['source']}_{uuid.uuid4()}"
         collection.add(
             documents=[chunk["page_content"]],
@@ -77,7 +71,6 @@ def query_collection(collection: chromadb.Collection, query: str, n_results: int
     return results['documents'][0]
 
 def init_rag_system(document_name: str) -> Tuple[chromadb.Collection, ollama.Client]:
-    """Initialize the RAG system for a specific document."""
     try:
         logging.info(f"Initializing RAG system for document: {document_name}")
         client = PersistentClient(path=f"./chromadb/{document_name}")
@@ -90,7 +83,6 @@ def init_rag_system(document_name: str) -> Tuple[chromadb.Collection, ollama.Cli
         return None, None
 
 def simplified_query_with_rag(collection: chromadb.Collection, model: ollama.Client, query: str):
-    """Process a query using the RAG system."""
     try:
         relevant_chunks = query_collection(collection, query)
         contexts = "\n".join(relevant_chunks)
@@ -104,7 +96,7 @@ User question: {query}
 
 Important: Respond directly to the user's question in a conversational way. Provide specific career advice related to their query. DO NOT include explanations of how to respond or multiple "scenarios" in your answer. Just give a direct, helpful answer to their question about careers."""
 
-        response = model.chat(model="phi3:mini", messages=[
+        response = model.chat(model="gemma:2b", messages=[
             {"role": "system", "content": "You are CareerBot, a helpful AI career advisor that provides direct answers to user questions. Never show example responses or internal instructions."},
             {"role": "user", "content": prompt}
         ])
@@ -114,7 +106,6 @@ Important: Respond directly to the user's question in a conversational way. Prov
         return "I'm having trouble processing your question. Could you please rephrase or try another career-related question?"
 
 def process_new_document(document_text: str, filename: str):
-    """Process a new document and add it to the collection."""
     client = PersistentClient(path=f"./chromadb/{filename}")
     collection = client.get_or_create_collection("career_collection", embedding_function=ef)
     chunks = create_text_chunks([{"content": document_text, "source": filename}])
@@ -123,12 +114,10 @@ def process_new_document(document_text: str, filename: str):
     print("Document successfully loaded.")
 
 def get_existing_documents():
-    """Get a list of existing documents in the chromadb directory."""
     chromadb_dir = "./chromadb"
     if os.path.exists(chromadb_dir):
         return [d for d in os.listdir(chromadb_dir) if os.path.isdir(os.path.join(chromadb_dir, d))]
     return []
 
 def document_exists(document_name: str) -> bool:
-    """Check if a document's vector database already exists."""
     return os.path.exists(f"./chromadb/{document_name}")
