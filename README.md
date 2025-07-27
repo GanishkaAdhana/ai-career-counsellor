@@ -14,7 +14,7 @@ Technologies Used
 3. Streamlit is employed to develop an intuitive and interactive web interface. Its simplicity and speed allow for rapid prototyping and deployment of data-driven applications.
 4. Ollama serves as the runtime environment for running local large language models, ensuring efficient, offline, and private model inference without relying on external APIs.
 5. FAISS (Facebook AI Similarity Search) is integrated for implementing vector-based similarity search, which enables fast and relevant retrieval of career guidance data in the Retrieval-Augmented Generation (RAG) system.
-6. phi3:mini, a lightweight and efficient language model, powers the core AI functionality, offering intelligent responses to user queries with minimal resource consumption.
+6. gemma:2b, efficient language model, powers the core AI functionality, offering intelligent responses to user queries.
 
 How It Works
 1. User Interaction: The user engages with the system either through the chatbot, the career test, or by uploading their resume.
@@ -27,7 +27,7 @@ How It Works
 pip install -r requirements.txt
 
 # Pull the phi3:mini model (needed for local inference)
-ollama pull phi3:mini
+ollama pull gemma:2b
 
 # Run the AI Career Counselor app
 streamlit run home_page.py
