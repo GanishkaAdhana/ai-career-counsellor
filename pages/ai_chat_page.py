@@ -8,7 +8,8 @@ st.set_page_config(page_title="AI Career Guide", page_icon="🚀", layout="wide"
 st.markdown("""
 <style>
     .stApp {
-        max-width: 1200px;
+        max-width: full;
+        height: full;
     }
     .chat-message {
         padding: 1.5rem;
@@ -54,7 +55,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize session states
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "current_document" not in st.session_state:
@@ -62,7 +62,6 @@ if "current_document" not in st.session_state:
 if "rag_system" not in st.session_state:
     st.session_state.rag_system = None
 
-# Function to extract text from uploaded PDF document
 def extract_text_from_pdf(uploaded_file):
     try:
         with fitz.open(stream=uploaded_file.read(), filetype="pdf") as doc:
@@ -72,7 +71,6 @@ def extract_text_from_pdf(uploaded_file):
         st.error(f"Error extracting text from document: {e}")
         return None
 
-# Function to display chat messages
 def display_chat_messages(messages):
     for message in messages:
         with st.container():
@@ -83,7 +81,6 @@ def display_chat_messages(messages):
             </div>
             """, unsafe_allow_html=True)
 
-# Sidebar
 with st.sidebar:
     st.title("📚 Document Manager")
 
@@ -116,20 +113,17 @@ with st.sidebar:
     if st.button("View Job Market Trends"):
         st.info("Job market trends feature coming soon!")
 
-# Main chat interface
 st.title("🚀 AI Career Guide")
 
 if st.session_state.current_document:
     st.subheader(f"📄 Current Document: {st.session_state.current_document}")
 
-# Display chat messages
 chat_container = st.container()
 with chat_container:
     st.markdown('<div class="chat-container">', unsafe_allow_html=True)
     display_chat_messages(st.session_state.messages)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Input container at the bottom
 st.markdown('<div class="input-container">', unsafe_allow_html=True)
 user_input = st.chat_input("Ask about careers, skills, or job opportunities...", key="user_input")
 st.markdown('</div>', unsafe_allow_html=True)
