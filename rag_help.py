@@ -2,7 +2,7 @@ import os
 import logging
 import ollama
 import chromadb
-from chromadb.utils import embedding_functions
+import chromadb.utils.embedding_functions as embedding_functions
 from typing import List, Tuple
 import textwrap
 import uuid
@@ -98,7 +98,7 @@ Important: Respond directly to the user's question in a conversational way. Prov
 
         response = model.chat(model="gemma:2b", messages=[
             {"role": "system", "content": "You are CareerBot, a helpful AI career advisor that provides direct answers to user questions. Never show example responses or internal instructions."},
-            {"role": "user", "content": prompt}
+            {"role": "us4er", "content": prompt}
         ])
         return response["message"]["content"]
     except Exception as e:
