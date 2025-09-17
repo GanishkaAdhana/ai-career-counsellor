@@ -2,3 +2,4 @@ streamlit
 PyMuPDF
 ollama
 faiss-cpu
+chromadb==0.4.15
