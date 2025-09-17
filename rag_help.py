@@ -98,7 +98,7 @@ Important: Respond directly to the user's question in a conversational way. Prov
 
         response = model.chat(model="gemma:2b", messages=[
             {"role": "system", "content": "You are CareerBot, a helpful AI career advisor that provides direct answers to user questions. Never show example responses or internal instructions."},
-            {"role": "us4er", "content": prompt}
+            {"role": "user", "content": prompt}
         ])
         return response["message"]["content"]
     except Exception as e:
